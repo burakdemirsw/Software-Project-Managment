@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="head-row">
+  <h1>Appointments</h1>
+  <a class="btn" href="{{ url_for('appointments.create') }}">+ Book appointment</a>
+</div>
+<form method="get" class="inline">
+  <input type="date" name="date" value="{{ day }}">
+  <select name="status">
+    <option value="">All statuses</option>
+    {% for s in ['BOOKED', 'COMPLETED', 'CANCELLED'] %}
+    <option {% if s == status %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <button>Filter</button>
+</form>
+<table>
+  <tr><th>#</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Department</th><th>Reason</th><th>Status</th><th></th></tr>
+  {% for a in appointments %}
+  <tr>
+    <td>{{ a.id }}</td><td>{{ a.appt_date }}</td><td>{{ a.appt_time }}</td>
+    <td>{{ a.patient }}</td><td>{{ a.doctor }}</td><td>{{ a.department }}</td>
+    <td>{{ a.reason or '' }}</td><td><span class="tag {{ a.status|lower }}">{{ a.status }}</span></td>
+    <td class="actions">
+      {% if a.status == 'BOOKED' %}
+      <form method="post" action="{{ url_for('appointments.complete', aid=a.id) }}"><button class="link">Complete</button></form>
+      <form method="post" action="{{ url_for('appointments.cancel', aid=a.id) }}"
+            onsubmit="return confirm('Cancel this appointment?')"><button class="link">Cancel</button></form>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9" class="muted">No appointments found.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

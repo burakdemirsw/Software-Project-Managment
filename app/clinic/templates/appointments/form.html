@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Book appointment</h1>
+<form method="post" class="form">
+  <label>Patient
+    <select name="patient_id" required>
+      <option value="">-- select --</option>
+      {% for p in patients %}
+      <option value="{{ p.id }}" {% if form.patient_id == p.id|string %}selected{% endif %}>{{ p.full_name }} ({{ p.national_id }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Doctor
+    <select name="doctor_id" id="doctor" required>
+      <option value="">-- select --</option>
+      {% for d in doctors %}
+      <option value="{{ d.id }}" {% if form.doctor_id == d.id|string %}selected{% endif %}>{{ d.full_name }} &ndash; {{ d.department }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Date<input type="date" name="appt_date" id="date" required value="{{ form.appt_date or '' }}"></label>
+  <label>Time (free slots)
+    <select name="appt_time" id="time" required><option value="">Select doctor and date first</option></select>
+  </label>
+  <label>Reason<input name="reason" value="{{ form.reason or '' }}"></label>
+  <div><button class="btn">Book</button> <a href="{{ url_for('appointments.list_appointments') }}">Cancel</a></div>
+</form>
+<script>
+  // Load the free slots of the selected doctor and day from the server.
+  const doctor = document.getElementById('doctor');
+  const day = document.getElementById('date');
+  const time = document.getElementById('time');
+  async function loadSlots() {
+    if (!doctor.value || !day.value) return;
+    const res = await fetch(`{{ url_for('appointments.slots') }}?doctor_id=${doctor.value}&date=${day.value}`);
+    const slots = await res.json();
+    time.innerHTML = slots.length
+      ? slots.map(s => `<option>${s}</option>`).join('')
+      : '<option value="">No free slots</option>';
+  }
+  doctor.addEventListener('change', loadSlots);
+  day.addEventListener('change', loadSlots);
+  loadSlots();
+</script>
+{% endblock %}
