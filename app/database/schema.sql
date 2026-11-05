@@ -49,5 +49,15 @@ CREATE TABLE dbo.appointments (
 );
 GO
 
+-- A doctor cannot have two active appointments in the same slot (filtered unique index).
+CREATE UNIQUE INDEX ux_doctor_slot
+    ON dbo.appointments (doctor_id, appt_date, appt_time)
+    WHERE status IN ('BOOKED', 'COMPLETED');
+
+-- A patient cannot have two active appointments in the same slot.
+CREATE UNIQUE INDEX ux_patient_slot
+    ON dbo.appointments (patient_id, appt_date, appt_time)
+    WHERE status IN ('BOOKED', 'COMPLETED');
+
 CREATE INDEX ix_appointments_date ON dbo.appointments (appt_date);
 GO
