@@ -18,6 +18,8 @@ def create_app(test_config=None):
     db.init_app(app)
 
     from .patients import bp as patients_bp
+    from .doctors import bp as doctors_bp
     app.register_blueprint(patients_bp)
+    app.register_blueprint(doctors_bp)
 
     return app

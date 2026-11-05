@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form">
+  <label>Full name<input name="full_name" required value="{{ doctor.full_name or '' }}"></label>
+  <label>Department
+    <select name="department_id" required>
+      <option value="">-- select --</option>
+      {% for dep in departments %}
+      <option value="{{ dep.id }}" {% if doctor.department_id|string == dep.id|string %}selected{% endif %}>{{ dep.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Start hour<input type="number" min="0" max="23" name="start_hour" required value="{{ doctor.start_hour or 9 }}"></label>
+  <label>End hour<input type="number" min="1" max="24" name="end_hour" required value="{{ doctor.end_hour or 17 }}"></label>
+  <label>Phone<input name="phone" value="{{ doctor.phone or '' }}"></label>
+  <label>Email<input type="email" name="email" value="{{ doctor.email or '' }}"></label>
+  <div><button class="btn">Save</button> <a href="{{ url_for('doctors.list_doctors') }}">Cancel</a></div>
+</form>
+{% endblock %}
