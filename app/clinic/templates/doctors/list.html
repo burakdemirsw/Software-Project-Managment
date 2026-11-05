@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="head-row">
+  <h1>Doctors</h1>
+  <a class="btn" href="{{ url_for('doctors.create') }}">+ New doctor</a>
+</div>
+<table>
+  <tr><th>Full name</th><th>Department</th><th>Working hours</th><th>Phone</th><th>Email</th><th></th></tr>
+  {% for d in doctors %}
+  <tr>
+    <td>{{ d.full_name }}</td><td>{{ d.department }}</td>
+    <td>{{ '%02d' % d.start_hour }}:00&ndash;{{ '%02d' % d.end_hour }}:00</td>
+    <td>{{ d.phone or '' }}</td><td>{{ d.email or '' }}</td>
+    <td class="actions"><a href="{{ url_for('doctors.edit', did=d.id) }}">Edit</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">No doctors yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
