@@ -1,20 +1,26 @@
 {% extends "base.html" %}
+{% set page_title = "Doctors" %}
+{% block crumb %}Operations{% endblock %}
 {% block content %}
-<div class="head-row">
-  <h1>Doctors</h1>
-  <a class="btn" href="{{ url_for('doctors.create') }}">+ New doctor</a>
+<div class="toolbar">
+  <div class="muted">Doctors and their working hours. Working hours define the 30-minute booking slots.</div>
+  {% if g.user.role == 'ADMIN' %}<a class="btn" href="{{ url_for('doctors.create') }}">+ New doctor</a>{% endif %}
 </div>
-<table>
-  <tr><th>Full name</th><th>Department</th><th>Working hours</th><th>Phone</th><th>Email</th><th></th></tr>
-  {% for d in doctors %}
-  <tr>
-    <td>{{ d.full_name }}</td><td>{{ d.department }}</td>
-    <td>{{ '%02d' % d.start_hour }}:00&ndash;{{ '%02d' % d.end_hour }}:00</td>
-    <td>{{ d.phone or '' }}</td><td>{{ d.email or '' }}</td>
-    <td class="actions"><a href="{{ url_for('doctors.edit', did=d.id) }}">Edit</a></td>
-  </tr>
-  {% else %}
-  <tr><td colspan="6" class="muted">No doctors yet.</td></tr>
-  {% endfor %}
-</table>
+<div class="panel">
+  <table>
+    <thead><tr><th>Full name</th><th>Department</th><th>Working hours</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+    <tbody>
+    {% for d in doctors %}
+    <tr>
+      <td><strong>{{ d.full_name }}</strong></td><td>{{ d.department }}</td>
+      <td>{{ '%02d' % d.start_hour }}:00 – {{ '%02d' % d.end_hour }}:00</td>
+      <td>{{ d.phone or '' }}</td><td class="muted">{{ d.email or '' }}</td>
+      <td class="actions">{% if g.user.role == 'ADMIN' %}<a href="{{ url_for('doctors.edit', did=d.id) }}">Edit</a>{% endif %}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="empty">No doctors yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

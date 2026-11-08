@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set page_title = title %}
+{% block crumb %}Administration / Appointment reasons{% endblock %}
+{% block content %}
+<div class="panel"><div class="panel-body">
+<form method="post" class="form">
+  <label>Name<input name="name" required maxlength="100" value="{{ reason.name or '' }}"></label>
+  <label>Department
+    <select name="department_id">
+      <option value="">All departments (general)</option>
+      {% for d in departments %}
+      <option value="{{ d.id }}" {% if reason.department_id|string == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="full">Description<input name="description" maxlength="200" value="{{ reason.description or '' }}"></label>
+  <label class="check full"><input type="checkbox" name="is_active" value="1" {% if reason.is_active %}checked{% endif %}> Active (can be chosen when booking)</label>
+  <div class="form-actions"><button>Save</button>
+    <a class="btn btn-light" href="{{ url_for('reasons.list_reasons') }}">Cancel</a></div>
+</form>
+</div></div>
+{% endblock %}

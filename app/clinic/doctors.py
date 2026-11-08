@@ -1,13 +1,14 @@
 """Doctor module: list doctors, add and edit doctors and their working hours."""
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
+from .auth import admin_required
 from .db import execute, insert, query_all, query_one
 
 bp = Blueprint("doctors", __name__, url_prefix="/doctors")
 
 
 def _departments():
-    return query_all("SELECT * FROM departments ORDER BY name")
+    return query_all("SELECT * FROM departments WHERE is_active = 1 ORDER BY name")
 
 
 def _form_errors(form):
@@ -40,6 +41,7 @@ def list_doctors():
 
 
 @bp.route("/new", methods=("GET", "POST"))
+@admin_required
 def create():
     if request.method == "POST":
         errors = _form_errors(request.form)
@@ -55,6 +57,7 @@ def create():
 
 
 @bp.route("/<int:did>/edit", methods=("GET", "POST"))
+@admin_required
 def edit(did):
     doctor = query_one("SELECT * FROM doctors WHERE id = ?", (did,))
     if doctor is None:
