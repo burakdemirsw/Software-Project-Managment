@@ -1,0 +1,17 @@
+ID,Title,Requirement,WBS,Story points,Sprint,Priority,Owner
+US-11,Database scripts and connection layer,NFR-1 NFR-5,1.4.1,5,Sprint 1,Must,Davut Ayfer
+US-1,Patient add / edit / search / delete,FR-1,1.4.2,5,Sprint 1,Must,Enes Küçükkaya
+US-2,National ID checksum check,FR-2,1.4.2,2,Sprint 1,Must,Enes Küçükkaya
+US-3,Departments and doctors with working hours,FR-3,1.4.3,5,Sprint 1,Must,Davut Ayfer
+US-4,Free 30-minute slots,FR-4 FR-11,1.4.4,5,Sprint 2,Must,Burak Demir
+US-5,Block doctor double booking,FR-5 NFR-1,1.4.4,3,Sprint 2,Must,Burak Demir
+US-6,Block patient double booking,FR-6,1.4.4,2,Sprint 2,Must,Burak Demir
+US-7,Reject past / weekend / out-of-hours bookings,FR-7,1.4.4,3,Sprint 2,Must,Burak Demir
+US-8,Cancel and complete appointments,FR-8,1.4.4,3,Sprint 2,Must,Davut Ayfer
+US-9,List and filter appointments,FR-9,1.4.4,3,Sprint 3,Should,Burak Demir
+US-10,Dashboard with utilization and cancellation rate,FR-10,1.4.5,5,Sprint 3,Should,Enes Küçükkaya
+US-12,Automated unit and integration tests,NFR-4,1.5.1 1.5.2,8,Sprint 3,Must,Alper Keskin
+CR-001,Corporate UI and logo,CR-001,1.3.3,3,Sprint 3,Should,Enes Küçükkaya
+CR-002,Login with roles,CR-002,1.4.1 1.4.4,5,Sprint 3,Should,Burak Demir
+CR-003,Departments and appointment reasons screens,CR-003,1.4.3,3,Sprint 3,Should,Davut Ayfer
+CR-004,Reporting page and CSV export,CR-004,1.4.5,5,Sprint 3,Should,Enes Küçükkaya
