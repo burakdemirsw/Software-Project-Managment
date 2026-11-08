@@ -49,17 +49,52 @@
 | ID | Activity | Owner | Start | Finish | Duration (days) |
 |---|---|---|---|---|---|
 | A | Project initiation & concept proposal | Burak Demir | 2026-09-28 | 2026-10-02 | 5.0 |
-| B | Requirements & stakeholder analysis | Burak Demir, Alper Keskin | 2026-10-05 | 2026-10-13 | 7.3 |
-| C | Project planning (WBS, schedule, cost, risk) | Burak Demir | 2026-10-14 | 2026-10-21 | 6.2 |
-| D | System & UI design | Enes Kucukkaya | 2026-10-14 | 2026-10-22 | 7.3 |
-| E | Database design & implementation | Davut Ayfer | 2026-10-14 | 2026-10-21 | 6.2 |
-| F | Patient module | Enes Kucukkaya | 2026-10-23 | 2026-11-03 | 8.2 |
-| G | Doctor & schedule module | Davut Ayfer | 2026-10-23 | 2026-10-30 | 6.3 |
-| H | Appointment booking module | Burak Demir, Davut Ayfer | 2026-11-04 | 2026-11-18 | 10.5 |
-| I | Reports & dashboard | Enes Kucukkaya | 2026-11-19 | 2026-11-24 | 4.3 |
-| J | Testing & bug fixing | Alper Keskin | 2026-11-19 | 2026-11-27 | 7.5 |
-| K | Final documentation (IEEE) | Alper Keskin | 2026-11-30 | 2026-12-07 | 6.2 |
-| L | Retrospective & presentation | All members | 2026-12-08 | 2026-12-11 | 3.2 |
+| B | Requirements & stakeholder analysis | Burak Demir, Alper Keskin | 2026-10-05 | 2026-10-14 | 7.3 |
+| C | Project planning (WBS, schedule, cost, risk) | Burak Demir | 2026-10-14 | 2026-10-22 | 6.2 |
+| D | System & UI design | Enes Kucukkaya | 2026-10-14 | 2026-10-23 | 7.3 |
+| E | Database design & implementation | Davut Ayfer | 2026-10-14 | 2026-10-22 | 6.2 |
+| F | Patient module | Enes Kucukkaya | 2026-10-23 | 2026-11-04 | 8.2 |
+| G | Doctor & schedule module | Davut Ayfer | 2026-10-23 | 2026-11-02 | 6.3 |
+| H | Appointment booking module | Burak Demir, Davut Ayfer | 2026-11-04 | 2026-11-19 | 10.5 |
+| I | Reports & dashboard | Enes Kucukkaya | 2026-11-19 | 2026-11-25 | 4.3 |
+| J | Testing & bug fixing | Alper Keskin | 2026-11-19 | 2026-11-30 | 7.5 |
+| K | Final documentation (IEEE) | Alper Keskin | 2026-11-30 | 2026-12-08 | 6.2 |
+| L | Retrospective & presentation | All members | 2026-12-09 | 2026-12-14 | 3.2 |
+
+Date rule: ES and EF are counted in working days from 28 Sep 2026. An activity starts on working day floor(ES) and finishes on working day ceil(EF) - 1, so a part-day at the end is shown on the last day that the activity uses (a successor may start on the same day).
+
+| Sprint | Weeks | Dates | Main activities |
+|---|---|---|---|
+| Sprint 1 | 4-5 | 2026-10-19 to 2026-10-30 | E, F, G |
+| Sprint 2 | 6-7 | 2026-11-02 to 2026-11-13 | F, H |
+| Sprint 3 | 8-9 | 2026-11-16 to 2026-11-27 | H, I, J |
+
+## Resource loading (planned hours per person per week)
+
+### Before levelling (owners only)
+
+| Member | W1 | W2 | W3 | W4 | W5 | W6 | W7 | W8 | W9 | W10 | W11 | W12 | Total | Max/week |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Burak Demir | 30 | 17 | 27 | 26 | 0 | 8 | 19 | 13 | 0 | 0 | 6 | 0 | 146 | 30 |
+| Davut Ayfer | 0 | 0 | 19 | 28 | 36 | 15 | 19 | 13 | 0 | 0 | 6 | 0 | 136 | 36 |
+| Enes Kucukkaya | 0 | 0 | 18 | 34 | 37 | 21 | 0 | 12 | 18 | 0 | 6 | 0 | 146 | 37 |
+| Alper Keskin | 0 | 17 | 8 | 0 | 0 | 0 | 0 | 12 | 37 | 37 | 21 | 0 | 131 | 37 |
+| **Team** | 30 | 34 | 73 | 88 | 72 | 44 | 38 | 49 | 55 | 37 | 38 | 1 | 560 | 88 |
+
+### After levelling (baseline)
+
+| Member | W1 | W2 | W3 | W4 | W5 | W6 | W7 | W8 | W9 | W10 | W11 | W12 | Total | Max/week |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Burak Demir | 30 | 17 | 27 | 26 | 2 | 10 | 21 | 17 | 9 | 2 | 6 | 0 | 167 | 30 |
+| Davut Ayfer | 0 | 0 | 19 | 27 | 25 | 13 | 19 | 15 | 6 | 1 | 6 | 0 | 131 | 27 |
+| Enes Kucukkaya | 0 | 0 | 13 | 24 | 26 | 15 | 0 | 13 | 24 | 1 | 6 | 0 | 122 | 26 |
+| Alper Keskin | 0 | 17 | 13 | 11 | 22 | 8 | 0 | 6 | 18 | 27 | 17 | 0 | 140 | 27 |
+| **Team** | 30 | 34 | 73 | 88 | 74 | 46 | 40 | 51 | 57 | 30 | 35 | 1 | 560 | 88 |
+
+- Average load is 560 h / 4 people / 12 weeks = about 11.7 h per person per week (plan: ~12 h).
+- **Over-allocation before levelling** (more than 20 h in one week): Burak W1 (30 h), Burak W3 (27 h), Burak W4 (26 h), Davut W4 (28 h), Davut W5 (36 h), Enes W4 (34 h), Enes W5 (37 h), Enes W6 (21 h), Alper W9 (37 h), Alper W10 (37 h), Alper W11 (21 h).
+- **Levelling actions in the baseline:** Alper Keskin pairs with the module owners in Sprint 1-2 and takes 30% of F (patient module) and G (doctor module); the PM's 1.1.4 Monitoring & EVM (10 h) is spread from the start of F to the end of J as level-of-effort work. Durations do not change, so the critical path stays the same.
+- **Remaining peak after levelling:** Burak Demir in Week 1 with 30 h. Peak weeks are planned outside exam days and are watched under risks R1 (member not available) and R3 (effort underestimated).
 
 ## Function Point Analysis
 
@@ -159,6 +194,8 @@ The FP size (1.78 KLOC) and the module estimate (1.68 KLOC) differ by +6.2%. We 
 
 - WBS bottom-up estimate: **560 person-hours** (3.68 PM)
 - Team capacity: 4 students x 12 weeks x ~12 hours/week = **576 person-hours**
+- Cost view: Basic 668 h x 150 TL = 100,251 TL; Intermediate 551 h x 150 TL = 82,641 TL; WBS 560 h x 150 TL = 84,000 TL (BAC)
+- COCOMO covers design, coding, testing and project management of the software; the whole WBS (560 h) has the same coverage, so the full WBS is compared.
 - Difference Intermediate COCOMO vs WBS: -1.6%
 
 ## Risk exposure (RE = P x I)
