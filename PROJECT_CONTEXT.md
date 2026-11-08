@@ -77,7 +77,8 @@ Business rules (in `app/clinic/scheduling.py` and `app/clinic/appointments.py`):
   rate, breakdowns by doctor (with utilization), department, reason, weekday, hour; CSV export
   (`/reports/export.csv`, `;` separated, UTF-8 BOM for Excel).
 - **Corporate UI and logo** (CR-001): sidebar layout, `app/clinic/static/img/logo.svg`
-  (PNG copy for documents: `docs/figures/logo.png`, also on every Word cover page).
+  (PNG copy: `docs/figures/logo.png`). Word cover pages use the official Haliç University logo
+  (`docs/figures/halic_logo.svg` from halic.edu.tr, converted to `halic_logo.png`), as Burak asked.
 - **GitHub Projects board is NOT created yet** (required by Weeks 2-4 notes). Documents use the
   placeholder "[GitHub Projects board link - to be added]"; replace it when the board exists.
 - **On hold:** CR-005, a separate structure for appointment statuses. Burak said not to start it.

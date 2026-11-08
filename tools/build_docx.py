@@ -106,9 +106,9 @@ def add_toc(doc):
 
 def cover(doc, title, meta):
     doc.add_paragraph()
-    logo = DOCS / "figures" / "logo.png"
+    logo = DOCS / "figures" / "halic_logo.png"   # Haliç University logo (official SVG, see halic_logo.svg)
     if logo.exists():
-        doc.add_picture(str(logo), width=Cm(2.6))
+        doc.add_picture(str(logo), width=Cm(3.4))
         doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
     for text, size, bold in (("HALİÇ UNIVERSITY", 20, True), ("Faculty of Engineering", 13, False),
                              ("Department of Software Engineering", 13, False)):
