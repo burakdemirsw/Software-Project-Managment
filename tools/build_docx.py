@@ -180,7 +180,7 @@ def convert(md_path):
     style = doc.styles["Normal"]
     style.font.name = "Calibri"
     style.font.size = Pt(11)
-    for lvl, size in ((1, 18), (2, 14), (3, 12)):
+    for lvl, size in ((1, 18), (2, 14), (3, 12), (4, 11)):
         hs = doc.styles[f"Heading {lvl}"]
         hs.font.color.rgb = ACCENT
         hs.font.size = Pt(size)
@@ -198,16 +198,20 @@ def convert(md_path):
     if i < len(lines) and lines[i].startswith("| |"):
         meta, i = read_meta_table(lines, i)
     cover(doc, title, meta)
+    combined = "Combined" in md_path.stem
+    toc_levels = ("#", "##") if combined else ("##", "###")
     doc.add_heading("Contents", level=1)
     in_code = False
     for ln in lines[i:]:
         if ln.strip().startswith("```"):
             in_code = not in_code
-        hm = None if in_code else re.match(r"^(##|###)\s+(.*)", ln.strip())
-        if hm:
+        hm = None if in_code else re.match(r"^(#{1,3})\s+(.*)", ln.strip())
+        if hm and hm.group(1) in toc_levels:
             p = doc.add_paragraph(hm.group(2).replace("**", ""))
             p.paragraph_format.space_after = Pt(1)
-            if hm.group(1) == "###":
+            if hm.group(1) == toc_levels[0]:
+                p.runs[0].bold = True
+            else:
                 p.paragraph_format.left_indent = Cm(0.8)
                 p.runs[0].font.size = Pt(10)
     doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
@@ -237,10 +241,13 @@ def convert(md_path):
             p.paragraph_format.left_indent = Cm(0.4)
             i += 1
             continue
-        m = re.match(r"^(#{1,4})\s+(.*)", s)
+        m = re.match(r"^(#{1,5})\s+(.*)", s)
         if m:
             flush()
-            doc.add_heading(m.group(2).replace("**", ""), level=min(len(m.group(1)), 3))
+            level = min(len(m.group(1)), 4)
+            if level == 1 and combined and doc.paragraphs and len(doc.paragraphs) > 1:
+                doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+            doc.add_heading(m.group(2).replace("**", ""), level=level)
         elif s.startswith("|"):
             flush()
             rows = []
