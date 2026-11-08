@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% set page_title = "Reports" %}
+{% block crumb %}Overview{% endblock %}
+{% macro breakdown(title, rows, first_col, extra=False) %}
+<div class="panel">
+  <div class="panel-head"><h2>{{ title }}</h2></div>
+  <table>
+    <thead><tr><th>{{ first_col }}</th>{% if extra %}<th>Department</th>{% endif %}
+      <th class="num">Total</th><th class="num">Booked</th><th class="num">Completed</th><th class="num">Cancelled</th>
+      <th class="num">Cancel %</th>{% if extra %}<th>Utilization</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr><td>{{ r.label }}</td>{% if extra %}<td class="muted">{{ r.department }}</td>{% endif %}
+      <td class="num"><strong>{{ r.total }}</strong></td><td class="num">{{ r.booked }}</td>
+      <td class="num">{{ r.completed }}</td><td class="num">{{ r.cancelled }}</td><td class="num">{{ r.cancel_rate }}%</td>
+      {% if extra %}<td><span class="bar"><div style="width: {{ r.utilization }}%"></div></span>{{ r.utilization }}%
+        <span class="muted">of {{ r.capacity }} slots</span></td>{% endif %}</tr>
+    {% else %}
+    <tr><td colspan="9" class="empty">No appointments in this period.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+{% block content %}
+<div class="panel"><div class="panel-body">
+  <form method="get" class="filters">
+    <label>From<input type="date" name="from" value="{{ start }}"></label>
+    <label>To<input type="date" name="to" value="{{ end }}"></label>
+    <label>Department
+      <select name="department_id">
+        <option value="">All departments</option>
+        {% for d in departments %}<option value="{{ d.id }}" {% if dep == d.id %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <button>Apply</button>
+    <a class="btn btn-light" href="{{ url_for('reports.export_csv', **{'from': start, 'to': end, 'department_id': dep or ''}) }}">Export to Excel (CSV)</a>
+  </form>
+</div></div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Appointments</div><div class="value">{{ summary.total }}</div></div>
+  <div class="kpi teal"><div class="label">Completed</div><div class="value">{{ summary.completed }}</div></div>
+  <div class="kpi amber"><div class="label">Still booked</div><div class="value">{{ summary.booked }}</div></div>
+  <div class="kpi red"><div class="label">Cancellation rate</div><div class="value">{{ summary.cancel_rate }}%</div></div>
+</div>
+<p class="muted">Period {{ start }} – {{ end }} · {{ working_days }} working days. Utilization = booked or completed slots / available slots.</p>
+
+{{ breakdown("By doctor", by_doctor, "Doctor", extra=True) }}
+<div class="grid-2">
+  {{ breakdown("By department", by_department, "Department") }}
+  {{ breakdown("By appointment reason", by_reason, "Reason") }}
+</div>
+<div class="grid-2">
+  <div class="panel"><div class="panel-head"><h2>Busiest days of the week</h2></div><div class="panel-body">
+    {% for r in by_weekday %}
+    <div class="hbar"><span class="name">{{ r.label }}</span>
+      <span class="track"><span class="fill" style="display:block;width: {{ (100 * r.total / peak)|round(1) }}%"></span></span>
+      <span class="n">{{ r.total }}</span></div>
+    {% else %}<div class="empty">No data.</div>{% endfor %}
+  </div></div>
+  <div class="panel"><div class="panel-head"><h2>Busiest hours</h2></div><div class="panel-body">
+    {% for r in by_hour %}
+    <div class="hbar"><span class="name">{{ r.label }}</span>
+      <span class="track"><span class="fill" style="display:block;width: {{ (100 * r.total / peak)|round(1) }}%"></span></span>
+      <span class="n">{{ r.total }}</span></div>
+    {% else %}<div class="empty">No data.</div>{% endfor %}
+  </div></div>
+</div>
+{% endblock %}
