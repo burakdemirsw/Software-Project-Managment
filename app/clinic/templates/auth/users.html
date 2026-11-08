@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% set page_title = "Users" %}
+{% block crumb %}Administration{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div class="muted">People who can sign in. Admins manage master data; receptionists manage patients and appointments.</div>
+  <a class="btn" href="{{ url_for('auth.create_user') }}">+ New user</a>
+</div>
+<div class="panel">
+  <table>
+    <thead><tr><th>Username</th><th>Full name</th><th>Role</th><th>Status</th><th>Last sign-in</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.username }}</td><td>{{ u.full_name }}</td>
+      <td><span class="tag {{ u.role|lower }}">{{ u.role }}</span></td>
+      <td><span class="tag {{ 'on' if u.is_active else 'off' }}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+      <td class="muted">{{ u.last_login_at.strftime('%Y-%m-%d %H:%M') if u.last_login_at else '-' }}</td>
+      <td class="actions">
+        {% if u.id != g.user.id %}
+        <form method="post" action="{{ url_for('auth.toggle_user', uid=u.id) }}">
+          <button class="link {{ 'danger' if u.is_active }}">{{ 'Deactivate' if u.is_active else 'Activate' }}</button></form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

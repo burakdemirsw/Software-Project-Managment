@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Clinic Appointment System</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-hero">
+    <div>
+      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Clinic Appointment System logo">
+      <h1>Clinic Appointment System</h1>
+      <p>One place for patients, doctors and appointments. Free time slots only, no double booking,
+         and clear reports for the clinic manager.</p>
+      <ul>
+        <li>30-minute slots inside each doctor's working hours</li>
+        <li>Double booking blocked by the application and the database</li>
+        <li>Reports by department, doctor and reason, with Excel export</li>
+      </ul>
+    </div>
+    <small>Haliç University · SEN4100 Software Project Management</small>
+  </div>
+  <div class="login-box">
+    <div class="login-card">
+      <h2>Sign in</h2>
+      <div class="muted">Use your clinic account to continue.</div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}<div class="flash {{ category }}" style="margin-top:16px">{{ message }}</div>{% endfor %}
+      {% endwith %}
+      <form method="post">
+        <label>Username<input name="username" autocomplete="username" required autofocus></label>
+        <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+        <button>Sign in</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
