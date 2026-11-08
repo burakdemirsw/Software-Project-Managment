@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% set page_title = "Appointment reasons" %}
+{% block crumb %}Administration{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div class="muted">Standard reasons for a visit. A reason can be general (all departments) or belong to one department.</div>
+  <a class="btn" href="{{ url_for('reasons.create') }}">+ New reason</a>
+</div>
+<div class="panel">
+  <table>
+    <thead><tr><th>Reason</th><th>Department</th><th>Description</th><th class="num">Used</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for r in reasons %}
+    <tr>
+      <td><strong>{{ r.name }}</strong></td>
+      <td>{{ r.department or 'All departments' }}</td>
+      <td class="muted">{{ r.description or '' }}</td>
+      <td class="num">{{ r.used }}</td>
+      <td><span class="tag {{ 'on' if r.is_active else 'off' }}">{{ 'Active' if r.is_active else 'Inactive' }}</span></td>
+      <td class="actions"><a href="{{ url_for('reasons.edit', reason_id=r.id) }}">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="empty">No reasons yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

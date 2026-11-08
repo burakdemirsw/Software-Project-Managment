@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set page_title = "Departments" %}
+{% block crumb %}Administration{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <div class="muted">Clinic departments. Inactive departments are hidden when adding doctors and reasons.</div>
+  <a class="btn" href="{{ url_for('departments.create') }}">+ New department</a>
+</div>
+<div class="panel">
+  <table>
+    <thead><tr><th>Name</th><th>Description</th><th class="num">Doctors</th><th class="num">Reasons</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for d in departments %}
+    <tr>
+      <td><strong>{{ d.name }}</strong></td><td class="muted">{{ d.description or '' }}</td>
+      <td class="num">{{ d.doctor_count }}</td><td class="num">{{ d.reason_count }}</td>
+      <td><span class="tag {{ 'on' if d.is_active else 'off' }}">{{ 'Active' if d.is_active else 'Inactive' }}</span></td>
+      <td class="actions"><a href="{{ url_for('departments.edit', dep_id=d.id) }}">Edit</a></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="empty">No departments yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

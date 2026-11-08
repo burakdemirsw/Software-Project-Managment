@@ -1,27 +1,32 @@
 {% extends "base.html" %}
+{% set page_title = "Patients" %}
+{% block crumb %}Operations{% endblock %}
 {% block content %}
-<div class="head-row">
-  <h1>Patients</h1>
+<div class="toolbar">
+  <form method="get" class="filters">
+    <label>Search<input name="q" value="{{ q }}" placeholder="Name or national ID"></label>
+    <button>Search</button>
+  </form>
   <a class="btn" href="{{ url_for('patients.create') }}">+ New patient</a>
 </div>
-<form method="get" class="inline">
-  <input name="q" value="{{ q }}" placeholder="Search by name or national ID">
-  <button>Search</button>
-</form>
-<table>
-  <tr><th>National ID</th><th>Full name</th><th>Birth date</th><th>Phone</th><th>Email</th><th></th></tr>
-  {% for p in patients %}
-  <tr>
-    <td>{{ p.national_id }}</td><td>{{ p.full_name }}</td><td>{{ p.birth_date }}</td>
-    <td>{{ p.phone or '' }}</td><td>{{ p.email or '' }}</td>
-    <td class="actions">
-      <a href="{{ url_for('patients.edit', pid=p.id) }}">Edit</a>
-      <form method="post" action="{{ url_for('patients.delete', pid=p.id) }}"
-            onsubmit="return confirm('Delete this patient?')"><button class="link">Delete</button></form>
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="6" class="muted">No patients found.</td></tr>
-  {% endfor %}
-</table>
+<div class="panel">
+  <table>
+    <thead><tr><th>National ID</th><th>Full name</th><th>Birth date</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+    <tbody>
+    {% for p in patients %}
+    <tr>
+      <td>{{ p.national_id }}</td><td><strong>{{ p.full_name }}</strong></td><td>{{ p.birth_date }}</td>
+      <td>{{ p.phone or '' }}</td><td class="muted">{{ p.email or '' }}</td>
+      <td class="actions">
+        <a href="{{ url_for('patients.edit', pid=p.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('patients.delete', pid=p.id) }}"
+              onsubmit="return confirm('Delete this patient?')"><button class="link danger">Delete</button></form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="empty">No patients found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

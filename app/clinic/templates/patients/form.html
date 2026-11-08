@@ -1,12 +1,17 @@
 {% extends "base.html" %}
+{% set page_title = title %}
+{% block crumb %}Operations / Patients{% endblock %}
 {% block content %}
-<h1>{{ title }}</h1>
+<div class="panel"><div class="panel-body">
 <form method="post" class="form">
-  <label>National ID (11 digits)<input name="national_id" maxlength="11" required value="{{ patient.national_id or '' }}"></label>
+  <label>National ID (TC Kimlik No)<input name="national_id" maxlength="11" required value="{{ patient.national_id or '' }}">
+    <span class="hint">11 digits, checked with the official checksum rule.</span></label>
   <label>Full name<input name="full_name" required value="{{ patient.full_name or '' }}"></label>
   <label>Birth date<input type="date" name="birth_date" required value="{{ patient.birth_date or '' }}"></label>
   <label>Phone<input name="phone" value="{{ patient.phone or '' }}"></label>
-  <label>Email<input type="email" name="email" value="{{ patient.email or '' }}"></label>
-  <div><button class="btn">Save</button> <a href="{{ url_for('patients.list_patients') }}">Cancel</a></div>
+  <label class="full">Email<input type="email" name="email" value="{{ patient.email or '' }}"></label>
+  <div class="form-actions"><button>Save</button>
+    <a class="btn btn-light" href="{{ url_for('patients.list_patients') }}">Cancel</a></div>
 </form>
+</div></div>
 {% endblock %}

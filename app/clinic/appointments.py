@@ -1,5 +1,5 @@
 """Appointment module: book, list, cancel and complete appointments."""
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, flash, g, jsonify, redirect, render_template, request, url_for
 
 from .db import IntegrityError, execute, insert, query_all, query_one
 from .scheduling import free_slots, validate_request
@@ -15,7 +15,8 @@ def _taken_times(doctor_id, appt_date):
     return [r["appt_time"] for r in rows]
 
 
-def book(patient_id, doctor_id, appt_date, appt_time, reason=None, now=None):
+def book(patient_id, doctor_id, appt_date, appt_time, reason_id=None, notes=None, now=None,
+         created_by=None):
     """Try to book an appointment. Returns (new_id, errors)."""
     doctor = query_one("SELECT * FROM doctors WHERE id = ?", (doctor_id,)) if doctor_id else None
     patient = query_one("SELECT id FROM patients WHERE id = ?", (patient_id,)) if patient_id else None
@@ -25,6 +26,12 @@ def book(patient_id, doctor_id, appt_date, appt_time, reason=None, now=None):
     errors = validate_request(appt_date, appt_time, doctor["start_hour"], doctor["end_hour"], now)
     if errors:
         return None, errors
+    if reason_id is not None:
+        reason = query_one("SELECT department_id, is_active FROM appointment_reasons WHERE id = ?",
+                           (reason_id,))
+        if reason is None or not reason["is_active"] or reason["department_id"] not in (
+                None, doctor["department_id"]):
+            return None, ["This appointment reason is not valid for the selected doctor."]
 
     if appt_time in _taken_times(doctor_id, appt_date):
         return None, ["The doctor is not free at this time."]
@@ -35,9 +42,10 @@ def book(patient_id, doctor_id, appt_date, appt_time, reason=None, now=None):
 
     try:
         new_id = insert(
-            "INSERT INTO appointments (patient_id, doctor_id, appt_date, appt_time, reason)"
-            " OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?)",
-            (patient_id, doctor_id, appt_date, appt_time, reason or None),
+            "INSERT INTO appointments (patient_id, doctor_id, appt_date, appt_time, reason_id, notes,"
+            " created_by) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (patient_id, doctor_id, appt_date, appt_time, reason_id, (notes or "").strip() or None,
+             created_by),
         )
     except IntegrityError:
         # Two users booked the same slot at the same moment: the unique index stops it.
@@ -49,12 +57,15 @@ def book(patient_id, doctor_id, appt_date, appt_time, reason=None, now=None):
 def list_appointments():
     day = request.args.get("date", "")
     status = request.args.get("status", "")
+    q = request.args.get("q", "").strip()
     sql = (
-        "SELECT a.*, p.full_name AS patient, d.full_name AS doctor, dep.name AS department"
+        "SELECT a.*, p.full_name AS patient, d.full_name AS doctor, dep.name AS department,"
+        " r.name AS reason"
         " FROM appointments a"
         " JOIN patients p ON p.id = a.patient_id"
         " JOIN doctors d ON d.id = a.doctor_id"
-        " JOIN departments dep ON dep.id = d.department_id WHERE 1=1"
+        " JOIN departments dep ON dep.id = d.department_id"
+        " LEFT JOIN appointment_reasons r ON r.id = a.reason_id WHERE 1=1"
     )
     params = []
     if day:
@@ -63,8 +74,11 @@ def list_appointments():
     if status:
         sql += " AND a.status = ?"
         params.append(status)
+    if q:
+        sql += " AND (p.full_name LIKE ? OR d.full_name LIKE ?)"
+        params += [f"%{q}%", f"%{q}%"]
     rows = query_all(sql + " ORDER BY a.appt_date, a.appt_time", params)
-    return render_template("appointments/list.html", appointments=rows, day=day, status=status)
+    return render_template("appointments/list.html", appointments=rows, day=day, status=status, q=q)
 
 
 @bp.route("/new", methods=("GET", "POST"))
@@ -72,7 +86,8 @@ def create():
     if request.method == "POST":
         f = request.form
         new_id, errors = book(f.get("patient_id", type=int), f.get("doctor_id", type=int),
-                              f.get("appt_date"), f.get("appt_time"), f.get("reason"))
+                              f.get("appt_date"), f.get("appt_time"), f.get("reason_id", type=int),
+                              f.get("notes"), created_by=g.user["id"])
         if not errors:
             flash(f"Appointment #{new_id} booked.", "ok")
             return redirect(url_for("appointments.list_appointments"))

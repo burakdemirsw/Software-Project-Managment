@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% set page_title = "Error " ~ code %}
+{% block content %}
+<div class="panel error-page">
+  <div class="code">{{ code }}</div>
+  <p>{{ message }}</p>
+  <a class="btn" href="{{ url_for('reports.dashboard') }}">Back to dashboard</a>
+</div>
+{% endblock %}

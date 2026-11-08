@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% set page_title = title %}
+{% block crumb %}Administration / Departments{% endblock %}
+{% block content %}
+<div class="panel"><div class="panel-body">
+<form method="post" class="form">
+  <label class="full">Name<input name="name" required maxlength="100" value="{{ dep.name or '' }}"></label>
+  <label class="full">Description<input name="description" maxlength="200" value="{{ dep.description or '' }}"></label>
+  <label class="check full"><input type="checkbox" name="is_active" value="1" {% if dep.is_active %}checked{% endif %}> Active</label>
+  <div class="form-actions"><button>Save</button>
+    <a class="btn btn-light" href="{{ url_for('departments.list_departments') }}">Cancel</a></div>
+</form>
+</div></div>
+{% endblock %}

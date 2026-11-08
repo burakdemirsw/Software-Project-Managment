@@ -1,40 +1,56 @@
 {% extends "base.html" %}
+{% set page_title = "Dashboard" %}
+{% block crumb %}Overview{% endblock %}
 {% block content %}
-<h1>Dashboard</h1>
-<div class="cards">
-  <div class="card"><span>{{ counts.patients }}</span>Patients</div>
-  <div class="card"><span>{{ counts.doctors }}</span>Doctors</div>
-  <div class="card"><span>{{ counts.today }}</span>Appointments today</div>
-  <div class="card"><span>{{ cancel_rate }}%</span>Cancellation rate</div>
+<div class="kpis">
+  <div class="kpi"><div class="label">Patients</div><div class="value">{{ counts.patients }}</div></div>
+  <div class="kpi teal"><div class="label">Doctors</div><div class="value">{{ counts.doctors }}</div></div>
+  <div class="kpi amber"><div class="label">Appointments today</div><div class="value">{{ counts.today }}</div></div>
+  <div class="kpi red"><div class="label">Cancellation rate</div><div class="value">{{ cancel_rate }}%</div></div>
 </div>
 
-<h2>Doctor utilization ({{ monday }} &ndash; {{ friday }})</h2>
-<table>
-  <tr><th>Doctor</th><th>Department</th><th>Hours</th><th>Booked slots</th><th>Utilization</th></tr>
-  {% for d in doctors %}
-  <tr>
-    <td>{{ d.full_name }}</td><td>{{ d.department }}</td>
-    <td>{{ '%02d' % d.start_hour }}:00&ndash;{{ '%02d' % d.end_hour }}:00</td>
-    <td>{{ d.booked }}</td>
-    <td><div class="bar"><div style="width: {{ d.utilization }}%"></div></div> {{ d.utilization }}%</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-head"><h2>Next appointments</h2>
+      <a class="btn" href="{{ url_for('appointments.create') }}">+ Book appointment</a></div>
+    <table>
+      <thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Reason</th></tr></thead>
+      <tbody>
+      {% for a in upcoming %}
+      <tr><td>{{ a.appt_date }}</td><td>{{ a.appt_time }}</td><td>{{ a.patient }}</td><td>{{ a.doctor }}</td>
+          <td class="muted">{{ a.reason or '-' }}</td></tr>
+      {% else %}
+      <tr><td colspan="5" class="empty">No upcoming appointments.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-<h2>Next appointments</h2>
-<table>
-  <tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th></tr>
-  {% for a in upcoming %}
-  <tr><td>{{ a.appt_date }}</td><td>{{ a.appt_time }}</td><td>{{ a.patient }}</td><td>{{ a.doctor }}</td></tr>
-  {% else %}
-  <tr><td colspan="4" class="muted">No upcoming appointments.</td></tr>
-  {% endfor %}
-</table>
+  <div class="panel">
+    <div class="panel-head"><h2>Doctor utilization this week</h2><span class="muted">{{ monday }} – {{ friday }}</span></div>
+    <table>
+      <thead><tr><th>Doctor</th><th>Department</th><th class="num">Booked</th><th>Utilization</th></tr></thead>
+      <tbody>
+      {% for d in doctors %}
+      <tr>
+        <td>{{ d.full_name }}</td><td class="muted">{{ d.department }}</td><td class="num">{{ d.booked }}</td>
+        <td><span class="bar"><div style="width: {{ d.utilization }}%"></div></span>{{ d.utilization }}%</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-<h2>Appointments by status</h2>
-<table>
-  <tr><th>Status</th><th>Count</th></tr>
-  {% for r in by_status %}<tr><td>{{ r.status }}</td><td>{{ r.n }}</td></tr>
-  {% else %}<tr><td colspan="2" class="muted">No data yet.</td></tr>{% endfor %}
-</table>
+<div class="panel">
+  <div class="panel-head"><h2>Appointments by status</h2>
+    <a class="btn btn-light" href="{{ url_for('reports.analytics') }}">Open reports</a></div>
+  <table>
+    <thead><tr><th>Status</th><th class="num">Count</th></tr></thead>
+    <tbody>
+    {% for r in by_status %}<tr><td><span class="tag {{ r.status|lower }}">{{ r.status }}</span></td><td class="num">{{ r.n }}</td></tr>
+    {% else %}<tr><td colspan="2" class="empty">No data yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

@@ -105,8 +105,11 @@ def add_toc(doc):
 
 
 def cover(doc, title, meta):
-    for _ in range(2):
-        doc.add_paragraph()
+    doc.add_paragraph()
+    logo = DOCS / "figures" / "logo.png"
+    if logo.exists():
+        doc.add_picture(str(logo), width=Cm(2.6))
+        doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
     for text, size, bold in (("HALİÇ UNIVERSITY", 20, True), ("Faculty of Engineering", 13, False),
                              ("Department of Software Engineering", 13, False)):
         p = doc.add_paragraph()
@@ -289,14 +292,15 @@ def convert(md_path):
         i += 1
     flush()
 
-    out = OUT / md_path.parent.name / (md_path.stem + ".docx")
+    sub = OUT if md_path.parent == DOCS else OUT / md_path.parent.name
+    out = sub / (md_path.stem + ".docx")
     out.parent.mkdir(parents=True, exist_ok=True)
     doc.save(out)
     return out
 
 
 def main():
-    files = sorted(DOCS.glob("M*_Milestone*/*.md"))
+    files = sorted(DOCS.glob("M*_Milestone*/*.md")) + sorted(DOCS.glob("*.md"))
     for f in files:
         print("written:", convert(f).relative_to(ROOT))
 
