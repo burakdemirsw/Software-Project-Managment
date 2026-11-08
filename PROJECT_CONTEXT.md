@@ -3,12 +3,14 @@
 > **For AI assistants (ChatGPT, Copilot, Claude, Cursor, etc.) and team members.**
 > This file explains what was built, why, and how everything is connected.
 > Read it before you change code or documents, so the work stays consistent.
-> Last update: 5 November 2026 (course Week 6).
+> Last update: 8 November 2026 (course Week 6). See also `docs/Change_Requests.md`.
 
 ## Türkçe kısa özet
 
 Bu klasör, Haliç Üniversitesi **SEN4100 Yazılım Proje Yönetimi** dersinin 4 kişilik dönem projesidir:
-**Klinik Randevu Sistemi** (Python + Flask + SQL Server LocalDB). Kod çalışıyor, 19 otomatik test geçiyor.
+**Klinik Randevu Sistemi** (Python + Flask + SQL Server LocalDB). Kod çalışıyor, 33 otomatik test geçiyor.
+Uygulamada login (ADMIN / RECEPTIONIST), kurumsal tasarım ve logo, raporlama, departman ve randevu nedeni
+ekranları var (değişiklik talepleri CR-001..CR-004). Randevu durumları için yeni yapı (CR-005) **beklemede**.
 **Milestone 1** ve **Milestone 2** belgeleri hazır (Markdown + Word). **Milestone 3 henüz başlamadı**
 (Hafta 13'te teslim). Tüm sayısal değerler (PERT, CPM, COCOMO, risk) `tools/pm_calculations.py`
 tarafından hesaplanır. Belgeleri değiştirince Word dosyalarını `tools/build_docx.py` ile yeniden üretin.
@@ -62,10 +64,25 @@ Business rules (in `app/clinic/scheduling.py` and `app/clinic/appointments.py`):
 - Turkish national ID (TC Kimlik No) is validated with its checksum algorithm.
 - Status: `BOOKED` -> `COMPLETED` or `CANCELLED` (only BOOKED can change).
 - Dashboard: patient count, appointments today, cancellation rate, doctor utilization
-  (= booked slots / available slots this week).
+  (= booked slots / available slots this week), next appointments, appointments by status.
+- **Login** (CR-002): every page needs a signed-in user. Roles: `ADMIN` (users, departments, reasons,
+  doctors) and `RECEPTIONIST` (patients, appointments). Passwords are scrypt hashes (werkzeug).
+  Inactive users cannot sign in. Each appointment stores `created_by`.
+  Demo accounts from `app/database/seed.sql`: `admin` / `Admin123!`, `reception` / `Reception123!`
+  (change them for any real use).
+- **Departments and appointment reasons** (CR-003): admin screens. A reason is general
+  (`department_id` NULL) or belongs to one department; booking only accepts reasons that fit the
+  doctor's department. Appointments have `reason_id` + free-text `notes`.
+- **Reports** (CR-004): `/reports/analytics` with date range + department filter; totals, cancellation
+  rate, breakdowns by doctor (with utilization), department, reason, weekday, hour; CSV export
+  (`/reports/export.csv`, `;` separated, UTF-8 BOM for Excel).
+- **Corporate UI and logo** (CR-001): sidebar layout, `app/clinic/static/img/logo.svg`
+  (PNG copy for documents: `docs/figures/logo.png`, also on every Word cover page).
+- **On hold:** CR-005, a separate structure for appointment statuses. Burak said not to start it.
+  Keep the three statuses until the team decides.
 
-Not in scope (see M1 scope statement): login/roles, online self-booking, SMS/e-mail, payments, medical
-records, mobile app, cloud hosting.
+Not in scope: online self-booking, SMS/e-mail, payments, medical records, mobile app, cloud hosting.
+(Login was out of scope in M1 and was added by CR-002.)
 
 ## 3. Technology and how to run
 
@@ -74,7 +91,7 @@ records, mobile app, cloud hosting.
 | Language / web | Python 3 (tested on 3.14) + Flask 3 (Jinja2 templates, blueprints) |
 | Database | Microsoft SQL Server **LocalDB** `(localdb)\MSSQLLocalDB`, database `ClinicAppointmentDB` |
 | DB driver | `pyodbc` with "ODBC Driver 17 for SQL Server" (falls back to 18 / "SQL Server") |
-| Tests | Python `unittest`, 19 tests |
+| Tests | Python `unittest`, 33 tests |
 | Editor | VS Code (`.vscode/launch.json`, `tasks.json`, `settings.json` are included) |
 
 History of the stack decision: first SQLite was used, then Burak asked for SQL Server LocalDB on his
@@ -103,22 +120,28 @@ Tests create and **drop** a separate database `ClinicAppointmentDB_Test`. They n
 
 ```
 app/
-  clinic/__init__.py      create_app(): config, registers blueprints, "/" -> dashboard
+  clinic/__init__.py      create_app(): config, login check before every request, blueprints,
+                          "/" -> dashboard, 403/404 pages
+  clinic/auth.py          /login, /logout, /users (admin), /account/password; admin_required
   clinic/db.py            pyodbc connection per request; helpers query_all / query_one / scalar /
                           execute / insert (INSERT ... OUTPUT INSERTED.id); init-db CLI; runs .sql
                           files split on GO; create_database / drop_database
   clinic/scheduling.py    pure rules (no Flask, no DB): day_slots, validate_request, free_slots,
                           utilization, is_valid_national_id
   clinic/patients.py      /patients  list, search, new, edit, delete (blocked if it has appointments)
-  clinic/doctors.py       /doctors   list, new, edit (working hours)
+  clinic/doctors.py       /doctors   list (all), new/edit (admin only)
+  clinic/departments.py   /departments  list, new, edit (admin only)
+  clinic/reasons.py       /reasons   list, new, edit (admin only); /reasons/for-doctor JSON
   clinic/appointments.py  /appointments  book(), list + filter, new, slots API, cancel, complete
-  clinic/reports.py       /reports   dashboard
+  clinic/reports.py       /reports   dashboard; /reports/analytics; /reports/export.csv
   clinic/templates/       base.html + one folder per module; static/style.css
   database/               create_database.sql, schema.sql (tables, constraints, indexes), seed.sql
-  tests/test_clinic.py    SchedulingRulesTest (9), BookingTest (6), WebPagesTest (4)
+  tests/test_clinic.py    SchedulingRulesTest (9), BookingTest (8), AuthTest (7),
+                          MasterDataTest (3), WebPagesTest (5), ReportsTest (1)
 ```
 
-Database tables: `departments`, `doctors`, `patients`, `appointments` (see `app/database/schema.sql`).
+Database tables: `users`, `departments`, `doctors`, `patients`, `appointment_reasons`, `appointments`
+(see `app/database/schema.sql`).
 Rows are returned as Python dicts. SQL uses `?` parameters (no string formatting with user input).
 
 ## 5. Project management numbers (single source of truth)
@@ -146,7 +169,8 @@ Key values (current baseline):
 | Budget | 560 h x 150 TL = BAC 84,000 TL (notional), reserve 10% (56 h) |
 | Business case | NPV +30,343 TL (3 years, r = 10%), ROI 59.6%, payback 1.88 years |
 | Risks | 11 risks, RE = P x I, P in {0.1, 0.3, 0.5, 0.7, 0.9}, I in 1..5; Red >= 2.0, Yellow 1.0-1.9, Green < 1.0 |
-| Measured code size | 920 non-blank lines (Python 468, HTML 226, CSS 40, SQL 76, tests 110) |
+| Measured code size | 1,933 non-blank lines after CR-001..004 (Python 846, HTML 604, CSS+SVG 162, SQL 126, tests 195); it was 920 at the M2 baseline |
+| Change requests | CR-001..004 approved, 54 h taken from the 56 h management reserve; baseline 560 h unchanged |
 
 Values that were **assumed** while writing (the team should confirm or change them): KPI targets
 SPI/CPI >= 0.90, effort ceiling 616 h, PM can approve changes up to 8 person-hours alone, project
@@ -163,6 +187,7 @@ docs/
                    2.3 Baseline Gantt & effort estimation (FP + COCOMO), 2.4 Risk register
   figures/         wbs.png, cpm_network.png, gantt_baseline.png, risk_matrix.png,
                    screen_*.png (app screenshots), results.md (all calculation tables)
+  Change_Requests.md  change log CR-001..CR-005 (scope changes after M2 baseline)
   Word/            .docx versions of every Markdown document (generated, do not edit by hand)
 ```
 

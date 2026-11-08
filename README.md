@@ -9,8 +9,9 @@ SEN4100 Software Project Management team project, Haliç University.
 | Enes Küçükkaya | 22091000275 | UI, patient module, dashboard |
 | Alper Keskin | 24352525053 | Testing, documentation |
 
-A web application for a small clinic: patients, doctors, and appointment booking
-in 30-minute slots with **no double booking**. Built with **Python + Flask** and
+A web application for a small clinic: patients, doctors, departments, appointment
+reasons and appointment booking in 30-minute slots with **no double booking**,
+login with roles (admin / receptionist) and reports with Excel (CSV) export. Built with **Python + Flask** and
 **Microsoft SQL Server (LocalDB)**.
 
 ## Folder structure
@@ -19,8 +20,10 @@ in 30-minute slots with **no double booking**. Built with **Python + Flask** and
 app/                  Source code
   clinic/             Flask application (modules, templates, CSS)
   database/           SQL Server scripts (create_database.sql, schema.sql, seed.sql)
-  tests/              19 automated tests (unittest)
+  tests/              33 automated tests (unittest)
+PROJECT_CONTEXT.md    Full project context for team members and AI assistants (read first)
 docs/
+  Change_Requests.md  Scope changes after the M2 baseline (CR-001 ... CR-005)
   M1_Milestone1/      Concept & stakeholders, charter, scope        (Week 4)
   M2_Milestone2/      WBS, CPM/PERT, Gantt & estimation, risks      (Week 7)
   (M3_Milestone3/     SCM audit, EVM, final IEEE document, retro    (Week 13) - later)
@@ -42,6 +45,9 @@ pip install -r requirements.txt
 flask --app clinic init-db --seed     # creates database ClinicAppointmentDB on (localdb)\MSSQLLocalDB
 flask --app clinic run                # open http://127.0.0.1:5000
 ```
+
+Demo accounts (from `database/seed.sql`, change them for real use):
+`admin` / `Admin123!` (administrator) and `reception` / `Reception123!` (receptionist).
 
 Open the database in SSMS with server name `(localdb)\MSSQLLocalDB` (Windows Authentication).
 Another server: set `CLINIC_DB_SERVER` and `CLINIC_DB_NAME` environment variables.
