@@ -31,6 +31,10 @@ PROJECT_START = date(2026, 9, 28)   # Monday of Week 1
 DEADLINE_DAYS = 60                  # end of Week 12 (Week 13 = presentation)
 HOURLY_RATE = 150                   # TL per person-hour (notional cost for EVM)
 STATUS_DAY = 50                     # EVM status date = end of Week 10
+# x = number of working days finished, so x = 20 is the end of Friday 23 Oct (end of Week 4)
+MILESTONES = [(20, "M1 23 Oct"), (35, "M2 13 Nov"), (65, "M3 25 Dec")]
+SPRINTS = [("Sprint 1 (W4-5)", 15, 25), ("Sprint 2 (W6-7)", 25, 35), ("Sprint 3 (W8-9)", 35, 45)]
+TEAM = ["Burak Demir", "Davut Ayfer", "Enes Kucukkaya", "Alper Keskin"]
 
 # id, name, optimistic, most likely, pessimistic (working days), predecessors, owner, planned hours
 ACTIVITIES = [
@@ -211,18 +215,22 @@ def draw_gantt(act, order):
         ax.text(a["es"] + 0.2, y, f"{aid}", va="center", color="white", fontsize=9, weight="bold")
     ax.set_yticks(range(len(order)))
     ax.set_yticklabels([f"{aid}  {act[aid]['name']}" for aid in reversed(order)], fontsize=9)
-    milestones = [(20, "M1 (Week 4)"), (35, "M2 (Week 7)"), (DEADLINE_DAYS, "M3 (Week 12-13)")]
-    for d, label in milestones:
+    for name, start, end in SPRINTS:
+        ax.axvspan(start, end, color="#14b8a6", alpha=0.08)
+        ax.text((start + end) / 2, -0.55, name, ha="center", fontsize=8.5, color="#0e7490", weight="bold")
+    ax.axvline(DEADLINE_DAYS, color="#c0392b", ls=":", lw=1.2)
+    ax.text(DEADLINE_DAYS - 0.3, -0.55, "Deadline 18 Dec", ha="right", fontsize=8, color="#c0392b")
+    for d, label in MILESTONES:
         ax.axvline(d, color="#333", ls="--", lw=1)
         ax.plot(d, len(order) - 0.3, marker="D", color="#f39c12", ms=10)
-        ax.text(d + 0.3, len(order) - 0.3, label, fontsize=9, va="center")
+        ax.text(d + 0.3, len(order) - 0.3, label, fontsize=8.5, va="center")
     ticks = list(range(0, 66, 5))
     ax.set_xticks(ticks)
     ax.set_xticklabels([f"W{t // 5 + 1}\n{workday_to_date(t).strftime('%d %b')}" for t in ticks], fontsize=8)
     ax.set_xlim(0, 66)
-    ax.set_ylim(-0.7, len(order) + 0.3)
+    ax.set_ylim(-0.9, len(order) + 0.3)
     ax.grid(axis="x", alpha=0.3)
-    ax.set_title("Baseline Gantt Chart (red = critical, hatched = slack)", fontsize=12)
+    ax.set_title("Baseline Gantt Chart (red = critical, hatched = slack, shaded = sprints)", fontsize=12)
     fig.tight_layout()
     fig.savefig(FIG / "gantt_baseline.png", dpi=150)
     plt.close(fig)
@@ -235,8 +243,94 @@ def write_gantt_table(act, order):
     md("|---|---|---|---|---|---|")
     for aid in order:
         a = act[aid]
-        md(f"| {aid} | {a['name']} | {a['owner']} | {workday_to_date(a['es'])} "
-           f"| {workday_to_date(max(a['ef'] - 1, a['es']))} | {a['te']:.1f} |")
+        start = math.floor(round(a["es"], 6))
+        finish = max(math.ceil(round(a["ef"], 6)) - 1, start)
+        md(f"| {aid} | {a['name']} | {a['owner']} | {workday_to_date(start)} "
+           f"| {workday_to_date(finish)} | {a['te']:.1f} |")
+    md()
+    md("Date rule: ES and EF are counted in working days from 28 Sep 2026. An activity starts on working day "
+       "floor(ES) and finishes on working day ceil(EF) - 1, so a part-day at the end is shown on the last day "
+       "that the activity uses (a successor may start on the same day).")
+    md()
+    md("| Sprint | Weeks | Dates | Main activities |")
+    md("|---|---|---|---|")
+    for name, start, end in SPRINTS:
+        acts = [a for a in order if a in "EFGHIJ"
+                and min(act[a]["ef"], end) - max(act[a]["es"], start) >= 1.5]   # at least 1.5 days inside
+        md(f"| {name.split(' (')[0]} | {start // 5 + 1}-{end // 5} | {workday_to_date(start)} to "
+           f"{workday_to_date(end - 1)} | {', '.join(acts)} |")
+    md()
+
+
+def _spread(load, hours, start, end, shares):
+    days = end - start
+    day = start
+    while day < end - 1e-9:
+        nxt = min(math.floor(day) + 1, end)
+        w = int(day // 5)
+        if w < len(next(iter(load.values()))):
+            for person, share in shares.items():
+                load[person][w] += hours * share * (nxt - day) / days
+        day = nxt
+
+
+def _loading(act, order, levelled):
+    weeks = 12
+    load = {p: [0.0] * weeks for p in TEAM}
+    for aid in order:
+        a = act[aid]
+        owners = TEAM if a["owner"] == "All members" else [o.strip() for o in a["owner"].split(",")]
+        shares = {o: 1 / len(owners) for o in owners}
+        hours = a["hours"]
+        if levelled:
+            if aid == "F":
+                shares = {"Enes Kucukkaya": 0.7, "Alper Keskin": 0.3}
+            if aid == "G":
+                shares = {"Davut Ayfer": 0.7, "Alper Keskin": 0.3}
+            if aid == "D":
+                shares = {"Enes Kucukkaya": 0.7, "Alper Keskin": 0.3}
+            if aid == "J":   # module owners fix their own bugs during testing
+                shares = {"Alper Keskin": 0.5, "Burak Demir": 0.2, "Davut Ayfer": 0.15, "Enes Kucukkaya": 0.15}
+            if aid == "K":   # 1.1.4 Monitoring & EVM (10 h) is level-of-effort work of the PM from F to J
+                hours -= 10
+                _spread(load, 10, act["F"]["es"], act["J"]["ef"], {"Burak Demir": 1.0})
+        _spread(load, hours, a["es"], a["ef"], shares)
+    return load
+
+
+def _loading_table(load, title):
+    weeks = 12
+    md(f"### {title}")
+    md()
+    md("| Member | " + " | ".join(f"W{w + 1}" for w in range(weeks)) + " | Total | Max/week |")
+    md("|---|" + "---|" * (weeks + 2))
+    for p in TEAM:
+        row = load[p]
+        md(f"| {p} | " + " | ".join(f"{h:.0f}" for h in row) + f" | {sum(row):.0f} | {max(row):.0f} |")
+    team = [sum(load[p][w] for p in TEAM) for w in range(weeks)]
+    md("| **Team** | " + " | ".join(f"{h:.0f}" for h in team) + f" | {sum(team):.0f} | {max(team):.0f} |")
+    md()
+
+
+def resource_loading(act, order):
+    """Planned hours per person per week (activity hours spread evenly over its duration)."""
+    md("## Resource loading (planned hours per person per week)")
+    md()
+    raw = _loading(act, order, levelled=False)
+    lev = _loading(act, order, levelled=True)
+    _loading_table(raw, "Before levelling (owners only)")
+    _loading_table(lev, "After levelling (baseline)")
+    over = [(p, w + 1, raw[p][w]) for p in TEAM for w in range(12) if raw[p][w] > 20]
+    md("- Average load is 560 h / 4 people / 12 weeks = about 11.7 h per person per week (plan: ~12 h).")
+    md("- **Over-allocation before levelling** (more than 20 h in one week): "
+       + ", ".join(f"{p.split()[0]} W{w} ({h:.0f} h)" for p, w, h in over) + ".")
+    md("- **Levelling actions in the baseline:** Alper Keskin pairs with the module owners in Sprint 1-2 and takes "
+       "30% of F (patient module) and G (doctor module); the PM's 1.1.4 Monitoring & EVM (10 h) is spread from the "
+       "start of F to the end of J as level-of-effort work. Durations do not change, so the critical path stays the same.")
+    peak = max((lev[p][w], p, w + 1) for p in TEAM for w in range(12))
+    md(f"- **Remaining peak after levelling:** {peak[1]} in Week {peak[2]} with {peak[0]:.0f} h. Peak weeks are "
+       "planned outside exam days and are watched under risks R1 (member not available) and R3 (effort "
+       "underestimated).")
     md()
 
 
@@ -371,6 +465,11 @@ def cocomo(kloc_fp):
     md(f"- WBS bottom-up estimate: **{bottom_up} person-hours** "
        f"({bottom_up / HOURS_PER_PM:.2f} PM)")
     md(f"- Team capacity: 4 students x 12 weeks x ~12 hours/week = **576 person-hours**")
+    md(f"- Cost view: Basic {e_basic * HOURS_PER_PM:.0f} h x 150 TL = {e_basic * HOURS_PER_PM * 150:,.0f} TL; "
+       f"Intermediate {e_int * HOURS_PER_PM:.0f} h x 150 TL = {e_int * HOURS_PER_PM * 150:,.0f} TL; "
+       f"WBS {bottom_up} h x 150 TL = {bottom_up * 150:,} TL (BAC)")
+    md("- COCOMO covers design, coding, testing and project management of the software; the whole WBS "
+       "(560 h) has the same coverage, so the full WBS is compared.")
     md(f"- Difference Intermediate COCOMO vs WBS: "
        f"{(e_int * HOURS_PER_PM - bottom_up) / bottom_up * 100:+.1f}%")
     md()
@@ -490,17 +589,18 @@ def risk_matrix():
 
 
 # ---------------------------------------------------------------- WBS chart
-WBS = [
-    ("1.1", "Project\nManagement", ["1.1.1 Concept & charter", "1.1.2 Planning (WBS, CPM)",
-                                     "1.1.3 Estimation & risk", "1.1.4 Monitoring (EVM)"]),
-    ("1.2", "Requirements", ["1.2.1 Stakeholder analysis", "1.2.2 Requirements (SRS)",
-                             "1.2.3 Scope definition"]),
-    ("1.3", "Design", ["1.3.1 Architecture", "1.3.2 Database design", "1.3.3 UI design"]),
-    ("1.4", "Implementation", ["1.4.1 Database layer", "1.4.2 Patient module", "1.4.3 Doctor module",
-                               "1.4.4 Appointment module", "1.4.5 Reports & dashboard"]),
-    ("1.5", "Testing", ["1.5.1 Unit tests", "1.5.2 Integration tests", "1.5.3 User acceptance"]),
-    ("1.6", "Closure", ["1.6.1 Final IEEE document", "1.6.2 SCM audit", "1.6.3 Retrospective",
-                        "1.6.4 Presentation"]),
+WBS = [  # names and hours as in the WBS dictionary (chapter 2.1)
+    ("1.1", "Project\nManagement", [("1.1.1 Concept proposal & charter", 30), ("1.1.2 Planning: WBS, CPM/PERT, Gantt", 25),
+                                     ("1.1.3 Estimation & risk register", 20), ("1.1.4 Monitoring & EVM", 10)]),
+    ("1.2", "Requirements", [("1.2.1 Stakeholders & TELOS", 15), ("1.2.2 Requirements (SRS)", 25),
+                             ("1.2.3 Scope statement", 10)]),
+    ("1.3", "Design", [("1.3.1 System architecture", 15), ("1.3.2 Database design", 20), ("1.3.3 UI design", 35)]),
+    ("1.4", "Implementation", [("1.4.1 Database implementation", 25), ("1.4.2 Patient module", 60),
+                               ("1.4.3 Doctor & schedule module", 45), ("1.4.4 Appointment booking", 80),
+                               ("1.4.5 Reports & dashboard", 30)]),
+    ("1.5", "Testing", [("1.5.1 Unit tests", 25), ("1.5.2 Integration tests", 20), ("1.5.3 User acceptance test", 10)]),
+    ("1.6", "Closure", [("1.6.1 Final IEEE documentation", 25), ("1.6.2 SCM audit", 10), ("1.6.3 Retrospective", 10),
+                        ("1.6.4 Presentation & defense", 15)]),
 ]
 
 
@@ -508,18 +608,19 @@ def draw_wbs():
     fig, ax = plt.subplots(figsize=(15, 7.5))
     ax.axis("off")
     top = (0.5, 0.92)
-    ax.text(*top, "1.0  Clinic Appointment System", ha="center", va="center", fontsize=13, weight="bold",
+    ax.text(*top, "1.0  Clinic Appointment System  (560 h)", ha="center", va="center", fontsize=13, weight="bold",
             bbox=dict(boxstyle="round,pad=0.5", fc="#0f6e8c", ec="none", color="white"), color="white")
     n = len(WBS)
     for k, (code, name, items) in enumerate(WBS):
         x = (k + 0.5) / n
         ax.plot([top[0], x], [0.88, 0.76], color="#888", lw=1)
-        ax.text(x, 0.72, f"{code}\n{name}", ha="center", va="center", fontsize=10, weight="bold",
+        total = sum(h for _, h in items)
+        ax.text(x, 0.72, f"{code}\n{name}\n({total} h)", ha="center", va="center", fontsize=10, weight="bold",
                 bbox=dict(boxstyle="round,pad=0.4", fc="#d6eaf2", ec="#0f6e8c"))
-        for j, it in enumerate(items):
+        for j, (it, hours) in enumerate(items):
             y = 0.58 - j * 0.11
             ax.plot([x, x], [0.66, y + 0.03], color="#bbb", lw=0.8)
-            ax.text(x, y, it.replace(" ", "\n", 1), ha="center", va="center", fontsize=8,
+            ax.text(x, y, it.replace(" ", "\n", 1) + f"\n({hours} h)", ha="center", va="center", fontsize=8,
                     bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="#9ab"))
     ax.set_xlim(0, 1)
     ax.set_ylim(0.08, 0.98)
@@ -535,6 +636,7 @@ def main():
     md()
     write_pert_tables(act, order, finish)
     write_gantt_table(act, order)
+    resource_loading(act, order)
     cocomo(function_points())
     if "--evm" in sys.argv:   # EVM is a Milestone 3 deliverable (status date Week 10)
         evm(act, order, finish)
