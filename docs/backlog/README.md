@@ -1,0 +1,14 @@
+# Product backlog (for the GitHub Projects board)
+
+The course asks for a GitHub Projects (or Jira) board that matches the lifecycle model:
+two-week iterations and story points. `Product_Backlog.csv` lists every backlog item.
+
+Set it up once (about 15 minutes):
+
+1. GitHub -> your profile -> Projects -> New project -> template "Iterative development".
+2. Settings of the project: Iteration field = 2 weeks, add Sprint 1 (Weeks 5-6), Sprint 2 (Weeks 7-8),
+   Sprint 3 (Weeks 9-10). Add a Number field "Story points".
+3. Link the project to the repository `burakdemirsw/Software-Project-Managment`.
+4. For every row of `Product_Backlog.csv`, create an issue (title = "ID Title"), set Story points,
+   Sprint and assignee, and add the label `user-story` (or `change-request` for CR rows).
+5. Take a screenshot of the board for the Milestone 2 submission.
